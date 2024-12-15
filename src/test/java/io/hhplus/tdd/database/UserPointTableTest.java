@@ -12,18 +12,15 @@ import java.util.Map;
 
 
 public class UserPointTableTest {
-    // 테스트에서만 사용되는 임시테이블이다.
-    private final Map<Long, UserPoint> table = new HashMap<>();
+
 
     // UserPointTable 객체내의 public 메소드를 테스트하기위해서 UserPointTable 인스턴스를 호출했다.
-    private UserPointTable database = new UserPointTable();
+    private UserPointTable repository = new UserPointTable();
 
-    // 테스트가 끝나면 table의 데이터를 비운다.
     @AfterEach
     private void tearDown() {
-        table.clear();
-    }
 
+    }
 
 
     @Test
@@ -32,26 +29,24 @@ public class UserPointTableTest {
         // given
         long inputUserId = 1;
         long inputAmount = 1000;
-        UserPoint newUserPoint = database.insertOrUpdate(inputUserId, inputAmount);
 
         // when
-        table.put(newUserPoint.id(), newUserPoint);
+        UserPoint newUserPoint = repository.insertOrUpdate(inputUserId, inputAmount);
 
         // then - assertEquals( 좌: expected, 우: result )
         Assertions.assertEquals(inputUserId, newUserPoint.id());
         Assertions.assertEquals(inputAmount, newUserPoint.point());
-        Assertions.assertEquals(1, table.size());
     }
 
 
     @Test
     @DisplayName("userId에 해당되는 유저포인트가 존재하지 않으면 amount: 0 인 유저포인트를 생성한다")
-    public void 유저가_존재하지_않을경우() {
+    public void 유저가_존재하지_않을_경우() {
         // given
         long userId = 1;
 
         // when
-        UserPoint result = database.selectById(userId);
+        UserPoint result = repository.selectById(userId);
 
         // then
         Assertions.assertEquals(userId, result.id());
@@ -63,20 +58,21 @@ public class UserPointTableTest {
     @DisplayName("userId에 해당되는 유저포인트가 존재한다")
     public void 유저가_존재할_경우() {
         // given
+        // 조회대상 유저아이디
         long targetUserId = 2;
-        for(int i=1 ; i<=3; i++) {
+
+        // targetUserId를 포함한 유저포인트 데이터를 적재한다
+        for (int i = 1; i <= 3; i++) {
             long userId = i;
             long amount = userId * 1000;
-            table.put(userId, database.insertOrUpdate(userId, amount));
+            repository.insertOrUpdate(userId, amount);
         }
 
-
         // when
-        UserPoint expectTargetUser = table.get(targetUserId);
-        UserPoint result = database.selectById(targetUserId);
+        UserPoint result = repository.selectById(targetUserId);
 
         // then
-        Assertions.assertEquals(expectTargetUser.point(), result.point());
+        Assertions.assertEquals(2000 , result.point());
         Assertions.assertTrue(result.point() != 0);
     }
 
