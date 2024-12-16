@@ -33,7 +33,7 @@ public class UserPointTableTest {
         // when
         UserPoint newUserPoint = repository.insertOrUpdate(inputUserId, inputAmount);
 
-        // then - assertEquals( 좌: expected, 우: result )
+        // then
         Assertions.assertEquals(inputUserId, newUserPoint.id());
         Assertions.assertEquals(inputAmount, newUserPoint.point());
     }
