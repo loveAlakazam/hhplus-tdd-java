@@ -51,7 +51,8 @@ public class PointServiceImpl implements  PointService {
             chargeAmount += userPoint.point();
 
             // 충전후 유저포인트
-            userPoint=this.userPointRepository.insertOrUpdate(userId, chargeAmount);
+            long amount = userPoint.point() + chargeAmount;
+            userPoint = this.userPointRepository.insertOrUpdate(userId, amount);
 
             // 히스토리 생성한다.
             this.pointHistoryRepository.insert(userId, chargeAmount, TransactionType.CHARGE, userPoint.updateMillis());
@@ -90,15 +91,15 @@ public class PointServiceImpl implements  PointService {
             UserPoint userPoint = userPointRepository.selectById(userId);
             if(useAmount > userPoint.point() ) {
                 // 실패
-                throw new RuntimeException("사용포인트는 보유포인트 보다 더 많은 포인트를 사용할 수 없습니다.");
+                throw new RuntimeException("보유포인트 보다 더 많은 포인트를 사용할 수 없습니다.");
             }
 
 
             long amount = userPoint.point() - useAmount;
-            this.userPointRepository.insertOrUpdate(userId, amount);
+            userPoint = this.userPointRepository.insertOrUpdate(userId, amount);
 
             // 히스토리 생성한다.
-            this.pointHistoryRepository.insert(userId, amount, TransactionType.USE, userPoint.updateMillis());
+            this.pointHistoryRepository.insert(userId, useAmount, TransactionType.USE, userPoint.updateMillis());
 
             return userPoint;
 
