@@ -3,6 +3,12 @@ package io.hhplus.tdd.point;
 import java.util.List;
 
 public interface PointService {
+    int MAX_CHARGE_AMOUNT = 50000;
+    int MIN_CHARGE_AMOUNT = 100;
+
+    int MAX_USE_AMOUNT = 50000;
+    int MIN_USE_AMOUNT = 100;
+
     // 포인트 충전
     UserPoint chargePoint(long userId, long chargeAmount);
 
