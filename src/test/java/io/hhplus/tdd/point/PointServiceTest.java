@@ -147,6 +147,58 @@ public class PointServiceTest {
         Assertions.assertEquals(expectedChargeAmount ,user.point());
     }
 
+    @Test
+    @DisplayName("포인트 조회")
+    public void 충전후_포인트_조회성공() {
+        // given
+        long userId = 1;
+        long chargeAmount = 4500;
+        long expectedChargeAmount = 9000;
+        pointService.chargePoint(userId, chargeAmount); // 포인트 충전: 0 -> 4500
+        pointService.chargePoint(userId, chargeAmount); // 포인트 충전: 4500 -> 9000
+
+        // when
+        UserPoint userPoint = pointService.getUserPointByUserId(userId);
+
+        // then
+        Assertions.assertEquals(expectedChargeAmount ,userPoint.point());
+    }
+
+    @Test
+    @DisplayName("포인트 조회")
+    public void 충전후_포인트_내역조회_성공() {
+        // given
+        long userId = 1;
+        long chargeAmount = 4500;
+        long expectedChargeAmount = 9000;
+        pointService.chargePoint(userId, chargeAmount); // 포인트 충전: 0 -> 4500
+        pointService.chargePoint(userId, chargeAmount); // 포인트 충전: 4500 -> 9000
+
+        // when
+        List<PointHistory> list = pointService.getPointHistoryByUserId(userId);
+
+        // then
+        Assertions.assertEquals(2, list.size());
+    }
+
+
+    @Test
+    @DisplayName("포인트 조회")
+    public void 충전2번_사용1번으로_포인트_내역조회_성공() {
+        // given
+        long userId = 1;
+        long chargeAmount = 4500;
+        long expectedChargeAmount = 9000;
+        pointService.chargePoint(userId, chargeAmount); // 포인트 충전: 0 -> 4500
+        pointService.chargePoint(userId, chargeAmount); // 포인트 충전: 4500 -> 9000
+        pointService.usePoint(userId, 5000); // 포인트 사용: 9000 -> 4000
+
+        // when
+        List<PointHistory> list = pointService.getPointHistoryByUserId(userId);
+
+        // then
+        Assertions.assertEquals(3, list.size());
+    }
 
 
 }
