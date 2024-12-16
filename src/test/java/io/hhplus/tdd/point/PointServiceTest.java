@@ -33,7 +33,7 @@ public class PointServiceTest {
     public void 유저아이디가_음수면_실패한다 () {
         // given
         long userId = -1; // 음수 유저 아이디
-        String expectedErrorMessage = "userId는 양수여야 합니다.";
+        String expectedErrorMessage = "userId는 양수입니다.";
 
         // when
         // then
@@ -61,7 +61,7 @@ public class PointServiceTest {
     public void 충전포인트는_50000원_초과하면_실패한다() {
         // given
         long userId = 1;
-        long chargeAmount = 100000; // 50000 원 미만
+        long chargeAmount = 100000; // 50000 원 초과
         String expectedErrorMessage = "충전포인트는 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
 
         // when
@@ -84,6 +84,69 @@ public class PointServiceTest {
         // then
         Assertions.assertEquals(expectedChargeAmount ,user.point());
     }
+
+    @Test
+    @DisplayName("포인트 사용")
+    public void 사용포인트는_100원_미만이면_실패한다() {
+        // given
+        long userId = 1;
+        long useAmount = 50; // 100 원 미만
+        String expectedErrorMessage = "사용포인트는 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
+
+        // when
+        // then
+        RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> pointService.usePoint(userId, useAmount));
+        Assertions.assertEquals(expectedErrorMessage, exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("포인트 사용")
+    public void 사용포인트는_50000원_초과하면_실패한다() {
+        // given
+        long userId = 1;
+        long useAmount = 100000; // 50000 원 초과
+        String expectedErrorMessage = "사용포인트는 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
+
+        // when
+        // then
+        RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> pointService.usePoint(userId, useAmount));
+        Assertions.assertEquals(expectedErrorMessage, exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("포인트 사용")
+    public void 사용포인트가_보유포인트보다_초과하면_실패한다() {
+        // given
+        long userId = 1;
+        long saveAmount = 8000; // 보유포인트
+        long useAmountOverThanSaveAmount = 9500; // 사용포인트: 보유포인트 보다 많은 사용포인트
+        pointService.chargePoint(userId, saveAmount); // 보유포인트만큼 충전
+        String expectedErrorMessage = "보유포인트 보다 더 많은 포인트를 사용할 수 없습니다.";
+
+        // when
+        // then
+        RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> pointService.usePoint(userId, useAmountOverThanSaveAmount));
+        Assertions.assertEquals(expectedErrorMessage, exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("포인트 사용")
+    public void 포인트사용_성공() {
+        // given
+        long userId = 1;
+        long saveAmount = 10000; // 보유포인트
+        long useAmount = 5000; // 사용포인트
+        pointService.chargePoint(userId, saveAmount); // 보유포인트만큼 충전
+        long expectedChargeAmount = saveAmount - useAmount;
+
+
+        // when
+        UserPoint user =pointService.usePoint(userId, useAmount);
+
+        // then
+        Assertions.assertEquals(expectedChargeAmount ,user.point());
+    }
+
 
 
 }
