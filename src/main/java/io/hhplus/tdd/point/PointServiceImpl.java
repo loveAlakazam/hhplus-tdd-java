@@ -47,9 +47,6 @@ public class PointServiceImpl implements  PointService {
             // 충전전 유저 조회
             UserPoint userPoint = userPointRepository.selectById(userId);
 
-            // 충전
-            chargeAmount += userPoint.point();
-
             // 충전후 유저포인트
             long amount = userPoint.point() + chargeAmount;
             userPoint = this.userPointRepository.insertOrUpdate(userId, amount);
