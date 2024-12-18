@@ -41,14 +41,13 @@ public class PointServiceImpl implements  PointService, PointValidator {
             UserPoint userPoint = userPointRepository.selectById(userId);
 
             // 충전후 유저포인트
-            long amount = userPoint.point() + chargeAmount;
-            userPoint = this.userPointRepository.insertOrUpdate(userId, amount);
+            long currentPointAfterCharge = addPoint(userPoint.point(), chargeAmount);
+            userPoint = this.userPointRepository.insertOrUpdate(userId, currentPointAfterCharge);
 
             // 히스토리 생성한다.
             this.pointHistoryRepository.insert(userId, chargeAmount, TransactionType.CHARGE, userPoint.updateMillis());
 
             return userPoint;
-
         } catch (RuntimeException e ) {
             throw e;
         }
@@ -131,31 +130,33 @@ public class PointServiceImpl implements  PointService, PointValidator {
             throw new RuntimeException("포인트 값은 최소 "+MIN_CHARGE_AMOUNT+" 이상 "+MAX_CHARGE_AMOUNT+" 이하입니다.");
     }
 
-    // 포인트 충전
-    // userSavedPoint : 유저보유포인트
-    // amount: 충전포인트
-    private long addPoint(long userSavedPoint, long amount ) {
-        return userSavedPoint + amount;
+
+    /**
+     *
+     * @param userSavedPoint: 유저보유포인트
+     * @param chargePoint: 충전포인트
+     * @return long
+     */
+    private long addPoint(long userSavedPoint, long chargePoint ) {
+        return userSavedPoint + chargePoint;
     }
 
-    // 포인트 사용
-    // userSavedPoint : 유저보유포인트
-    // amount: 사용포인트
+
 
     /**
      * 포인트 사용
      *
      * @param userSavedPoint : 유저보유포인트
-     * @param chargeAmount : 사용포인트
+     * @param useAmount : 사용포인트
      * @return long
      * @throws RuntimeException
      */
-    private long subtractPoint(long userSavedPoint, long chargeAmount )throws RuntimeException {
-        // 사용포인트(chargeAmount) > 유저보유포인트(userSavedPoint) 이면 에러를 발생시킨다.
-        if(chargeAmount  > userSavedPoint) {
+    private long subtractPoint(long userSavedPoint, long useAmount )throws RuntimeException {
+        // 사용포인트(useAmount) > 유저보유포인트(userSavedPoint) 이면 에러를 발생시킨다.
+        if(useAmount  > userSavedPoint) {
             throw new RuntimeException("보유포인트 보다 더 많은 포인트를 사용할 수 없습니다.");
         }
 
-        return userSavedPoint - chargeAmount;
+        return userSavedPoint - useAmount;
     }
 }
