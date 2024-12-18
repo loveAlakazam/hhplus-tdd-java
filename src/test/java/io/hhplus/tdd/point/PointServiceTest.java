@@ -48,7 +48,7 @@ public class PointServiceTest {
         // given
         long userId = 1;
         long chargeAmount = 50; // 100 원 미만
-        String expectedErrorMessage = "충전포인트는 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
+        String expectedErrorMessage = "포인트 값은 최소 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
 
         // when
         // then
@@ -62,7 +62,7 @@ public class PointServiceTest {
         // given
         long userId = 1;
         long chargeAmount = 100000; // 50000 원 초과
-        String expectedErrorMessage = "충전포인트는 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
+        String expectedErrorMessage = "포인트 값은 최소 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
 
         // when
         // then
@@ -91,7 +91,7 @@ public class PointServiceTest {
         // given
         long userId = 1;
         long useAmount = 50; // 100 원 미만
-        String expectedErrorMessage = "사용포인트는 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
+        String expectedErrorMessage = "포인트 값은 최소 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
 
         // when
         // then
@@ -105,7 +105,7 @@ public class PointServiceTest {
         // given
         long userId = 1;
         long useAmount = 100000; // 50000 원 초과
-        String expectedErrorMessage = "사용포인트는 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
+        String expectedErrorMessage = "포인트 값은 최소 " + MIN_CHARGE_AMOUNT + " 이상 " + MAX_CHARGE_AMOUNT + " 이하입니다.";
 
         // when
         // then
