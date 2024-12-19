@@ -38,8 +38,47 @@ public class PointServiceConcurrencyTest {
     private UserPointTable userPointRepository;
 
     @Test
+    @DisplayName("동일 유저에 대한 포인트 충전/사용 동시성 테스트")
+    public void 동일_유저가_포인트충전_과_포인트사용을_동시에_수행하는_시나리오를_성공한다() throws InterruptedException {
+        // given
+        // 새로운 유저 데이터 생성 및 저장
+        long userId = 3L;
+        long 초기충전량 = 1000L;
+        userPointRepository.insertOrUpdate(userId, 초기충전량);
+
+        // 스레드 풀 생성
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        CountDownLatch latch = new CountDownLatch(10);
+
+        for (int i = 0; i < 10; i++) {
+            int finalI = i;
+            executorService.execute(() -> {
+                try {
+                    if(finalI % 2 == 0 ) {
+                        pointService.chargePoint(userId, 200); // 200 포인트 충전
+                    } else {
+                        pointService.usePoint(userId, 100); // 100 포인트 감소
+                    }
+
+                } finally {
+                    latch.countDown(); // 작업 완료 시 카운트 감소
+                }
+            });
+        }
+
+        // when
+        latch.await(); // 모든 스레드가 작업 완료할 때까지 대기
+        UserPoint updatedUser = userPointRepository.selectById(userId);
+
+        // then
+        long expectedPoint = 1500; // 예상: (초기포인트값) 1000 => (충전5번) +1000 / (차감 5번) -500 => 1500
+        assertThat(updatedUser.point()).isEqualTo(expectedPoint);
+    }
+
+
+    @Test
     @DisplayName("동일 유저에 대한 동시성 테스트")
-    public void 동일한_유저가_동시에_포인트를_여러번_충전하는_시나리오를_성공한다() throws InterruptedException {
+    public void 동일_유저가_동시에_포인트를_사용과_포인트조회하는_시나리오를_성공한다() throws InterruptedException {
         //given
         // 새로운 유저 데이터 생성 및 저장
         long userId = 3L;
@@ -59,9 +98,14 @@ public class PointServiceConcurrencyTest {
         CountDownLatch latch = new CountDownLatch(10);
 
         for (int i = 0; i < 10; i++) {
+            int finalI = i;
             executorService.execute(() -> {
                 try {
-                    pointService.usePoint(userId, 100); // 100 포인트 감소
+                    if(finalI % 2 == 0) {
+                        pointService.usePoint(userId, 100); // 100 포인트 감소
+                    } else {
+                        pointService.getUserPointByUserId(userId); // 포인트 조회
+                    }
                 } finally {
                     latch.countDown(); // 작업 완료 시 카운트 감소
                 }
@@ -73,14 +117,14 @@ public class PointServiceConcurrencyTest {
         UserPoint updatedUser = userPointRepository.selectById(userId);
 
         // then
-        assertThat(updatedUser.point()).isEqualTo(0); // 남은 포인트가 0이어야 함
+        assertThat(updatedUser.point()).isEqualTo(500); // 남은 포인트가 500이어야 함
     }
 
 
     @Test
-    public void 서로다른_유저들이_동시에_호출했을_경우_순서대로_진행하여_성공한다() throws InterruptedException {
-        // 서로 다른 유저에 대한 동시성 테스트
-
+    @DisplayName("서로다른 유저에 대한 동시성 테스트")
+    public void 서로다른_유저들이_동시에_포인트를_충전_과_포인트를_사용하는_시나리오를_성공한다() throws InterruptedException {
+        // given
         // 두 유저 데이터 생성 및 저장
         long userOneId = 1L;
         long userOneSavedPoint = 1000L;
@@ -91,35 +135,53 @@ public class PointServiceConcurrencyTest {
         UserPoint user2 = userPointRepository.insertOrUpdate(userTwoId, userTwoSavedPoint);
 
         // 스레드 풀 생성 (10개의 스레드)
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        int threadPoolCount = 20;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolCount);
 
-        // CountDownLatch를 사용해 10개의 스레드를 동기화
-        CountDownLatch latch = new CountDownLatch(10);
+        // CountDownLatch를 사용해 20 개의 스레드를 동기화
+        CountDownLatch latch = new CountDownLatch(threadPoolCount);
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < threadPoolCount; i++) {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    if (finalI % 2 == 0) {
-                        pointService.usePoint(user1.id(), 100); // User1 포인트 감소
-                    } else {
-                        pointService.usePoint(user2.id(), 100); // User2 포인트 감소
+                    int index = finalI % 4;
+                    switch(index) {
+                        // 나머지가 1 이면 -> User1 포인트 감소
+                        case 0:
+                            pointService.usePoint(user1.id(), 100); // User1 포인트 감소
+                            break;
+                        case 1:
+                            pointService.usePoint(user2.id(), 100); // User2 포인트 감소
+                            break;
+                        case 2:
+                            pointService.chargePoint(user1.id(), 100); // User1 포인트 충전
+                            break;
+                        case 3:
+                            pointService.chargePoint(user2.id(), 100); // User2 포인트 충전
+                            break;
                     }
+
                 } finally {
                     latch.countDown(); // 작업 완료 시 카운트 감소
                 }
             });
         }
 
+
+        // when
         latch.await(); // 모든 스레드가 작업 완료할 때까지 대기
 
         UserPoint updatedUser1 = userPointRepository.selectById(user1.id());
         UserPoint updatedUser2 = userPointRepository.selectById(user2.id());
 
 
+        // then
         // 남은 포인트가 각각 500이어야 함
-        assertThat(updatedUser1.point()).isEqualTo(500);
-        assertThat(updatedUser2.point()).isEqualTo(500);
+        // 예상값: 1000 보유 => 100*5 사용 / 100*5 충전 => 1000원
+        long expectedPoint = 1000;
+        assertThat(updatedUser1.point()).isEqualTo(expectedPoint);
+        assertThat(updatedUser2.point()).isEqualTo(expectedPoint);
     }
 
 }
