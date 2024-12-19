@@ -30,7 +30,7 @@ public class PointServiceTest {
 
     @Test
     @DisplayName("포인트 충전/사용/조회/내역조회 에서 모두 사용된다.")
-    public void 유저아이디가_음수면_실패한다 () {
+    public void 유저아이디가_음수면_RuntimeException_예외발생으로_실패한다 () {
         // given
         long userId = -1; // 음수 유저 아이디
         String expectedErrorMessage = "userId는 양수입니다.";
@@ -58,7 +58,7 @@ public class PointServiceTest {
 
     @Test
     @DisplayName("포인트 충전")
-    public void 충전포인트는_50000원_초과하면_실패한다() {
+    public void 충전포인트는_50000원_초과하면_RuntimeException_예외발생으로_실패한다() {
         // given
         long userId = 1;
         long chargeAmount = 100000; // 50000 원 초과
@@ -87,7 +87,7 @@ public class PointServiceTest {
 
     @Test
     @DisplayName("포인트 사용")
-    public void 사용포인트는_100원_미만이면_실패한다() {
+    public void 사용포인트는_100원_미만이면_RuntimeException_예외발생으로_실패한다() {
         // given
         long userId = 1;
         long useAmount = 50; // 100 원 미만
@@ -101,7 +101,7 @@ public class PointServiceTest {
 
     @Test
     @DisplayName("포인트 사용")
-    public void 사용포인트는_50000원_초과하면_실패한다() {
+    public void 사용포인트는_50000원_초과하면_RuntimeException_예외발생으로_실패한다() {
         // given
         long userId = 1;
         long useAmount = 100000; // 50000 원 초과
@@ -115,7 +115,7 @@ public class PointServiceTest {
 
     @Test
     @DisplayName("포인트 사용")
-    public void 사용포인트가_보유포인트보다_초과하면_실패한다() {
+    public void 사용포인트가_보유포인트보다_초과하면_RuntimeException_예외발생으로_실패한다() {
         // given
         long userId = 1;
         long saveAmount = 8000; // 보유포인트

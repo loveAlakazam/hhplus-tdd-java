@@ -41,7 +41,7 @@ public class UserPointTableTest {
 
     @Test
     @DisplayName("userId에 해당되는 유저포인트가 존재하지 않으면 amount: 0 인 유저포인트를 생성한다")
-    public void 유저가_존재하지_않을_경우() {
+    public void 유저아이디가_유효하면_포인트가_0인_유저포인트로_초기화한다() {
         // given
         long userId = 1;
 
