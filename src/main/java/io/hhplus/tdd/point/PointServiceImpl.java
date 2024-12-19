@@ -6,6 +6,7 @@ import io.hhplus.tdd.point.validators.PointValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 @Service
@@ -15,6 +16,7 @@ public class PointServiceImpl implements  PointService, PointValidator {
     private final PointHistoryTable pointHistoryRepository;
     private final UserPointTable userPointRepository;
 
+    private final ReentrantLock lock = new ReentrantLock(true); // 공정성을 보장하는 락이다.
 
 
     public PointServiceImpl(PointHistoryTable pointHistoryRepository, UserPointTable userPointRepository) {
@@ -32,6 +34,9 @@ public class PointServiceImpl implements  PointService, PointValidator {
      */
     @Override
     public UserPoint chargePoint(long userId, long chargeAmount) throws RuntimeException {
+        // 데이터변경으로 데이터의 일관성이 깨지는 상황을 발생시키는 로직에서 동시성제어의 대상이 된다.
+        // 즉, 쓰기 작업에서 동시성제어가 필요하다.
+        lock.lock(); // 동시성 제어 시작(다른스레드가 들어오지 못하도록 잠금)
         try {
             // 유효성 검증
             validateUserId(userId); // 유저아이디
@@ -50,6 +55,8 @@ public class PointServiceImpl implements  PointService, PointValidator {
             return userPoint;
         } catch (RuntimeException e ) {
             throw e;
+        } finally {
+            lock.unlock(); // 동시성제어 종료(잠금해제)
         }
     }
 
@@ -64,6 +71,7 @@ public class PointServiceImpl implements  PointService, PointValidator {
      */
     @Override
     public UserPoint usePoint(long userId, long useAmount) {
+        lock.lock(); // 동시성제어 시작
         try {
             // 유효성검사
             validateUserId(userId); // 유저아이디
@@ -84,9 +92,9 @@ public class PointServiceImpl implements  PointService, PointValidator {
 
         } catch (RuntimeException e) {
             throw e;
+        } finally {
+         lock.unlock(); // 동시성제어 해제
         }
-
-
     }
 
 
